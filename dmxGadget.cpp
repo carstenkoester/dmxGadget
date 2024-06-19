@@ -3,8 +3,8 @@
 dmxGadget::dmxGadget(char* name, unsigned int led_count, unsigned int defaultDmxAddress):
   receiver(RF24_PIN_CE, RF24_PIN_CSN, STATUS_LED_PIN),
   config(name),
-  strip(led_count, LED_PIN, LED_CONFIG),
-  battery(ADC_PIN),
+  strip(led_count, NEOPIXEL_LED_PIN, NEOPIXEL_LED_CONFIG),
+  battery(BAT_VOLT_PIN),
   dmxAddress("dmx_address", defaultDmxAddress)
 {
 };
@@ -45,36 +45,39 @@ void dmxGadget::setup()
   }
 
   // Power PropMaker wing NeoPixel circuit
-  pinMode(LED_POWER, OUTPUT);
-  digitalWrite(LED_POWER, HIGH);
+  pinMode(NEOPIXEL_LED_POWER, OUTPUT);
+  digitalWrite(NEOPIXEL_LED_POWER, HIGH);
 }
 
 void dmxGadget::loop() {
   outputLoopCount++;
 
   unsigned long currentMillis = millis();
-  if (currentMillis > (previousMillis + 5000)) {
-    unsigned int rxCount = receiver.rxCount();
-    unsigned int rxErrors = receiver.rxErrors();
 
-    unsigned int deltaMillis = currentMillis-previousMillis;
+  if (statusSeconds > 0) {
+    if (currentMillis > (previousMillis + (statusSeconds * 1000))) {
+      unsigned int rxCount = receiver.rxCount();
+      unsigned int rxErrors = receiver.rxErrors();
 
-    Serial.printf("Addr %d, Uptime: %d, RxCount: %d (+%d, %.2f/sec), errCount %d (+%d, %.2f/sec), loop iterations %d (+%d, %.2f/sec), Bat Voltage: %.2fV (%d%%), BLE active %d, connected: %d\n",
-      dmxAddress.value(),
-      currentMillis/1000,
-      rxCount, rxCount-previousRxCount, ((float)(rxCount-previousRxCount)/deltaMillis*1000),
-      rxErrors, rxErrors-previousErrors, ((float)(rxErrors-previousErrors)/deltaMillis*1000),
-      outputLoopCount, outputLoopCount-previousOutputLoopCount, ((float)(outputLoopCount-previousOutputLoopCount)/deltaMillis*1000),
-      battery.getBatteryVolts(), battery.getBatteryChargeLevel(),
-      config.active(), BLE.connected()
-    );
-    previousMillis = currentMillis;
-    previousRxCount = rxCount;
-    previousErrors = rxErrors;
-    previousOutputLoopCount = outputLoopCount;
+      unsigned int deltaMillis = currentMillis-previousMillis;
+
+      Serial.printf("Addr %d, Uptime: %d, RxCount: %d (+%d, %.2f/sec), errCount %d (+%d, %.2f/sec, %.2f%%), loop iterations %d (+%d, %.2f/sec), Bat Voltage: %.2fV (%d%%), BLE active %d, connected: %d\n",
+        dmxAddress.value(),
+        currentMillis/1000,
+        rxCount, rxCount-previousRxCount, ((float)(rxCount-previousRxCount)/deltaMillis*1000),
+        rxErrors, rxErrors-previousErrors, ((float)(rxErrors-previousErrors)/deltaMillis*1000), ((((float)(rxErrors-previousErrors)/(rxCount-previousRxCount))*100)),
+        outputLoopCount, outputLoopCount-previousOutputLoopCount, ((float)(outputLoopCount-previousOutputLoopCount)/deltaMillis*1000),
+        battery.getBatteryVolts(), battery.getBatteryChargeLevel(),
+        config.active(), BLE.connected()
+      );
+      previousMillis = currentMillis;
+      previousRxCount = rxCount;
+      previousErrors = rxErrors;
+      previousOutputLoopCount = outputLoopCount;
+    }
   }
 
-  if ((millis() > (bleConfigDisableSeconds * 1000)) && (config.active())) {
+  if ((currentMillis > (bleConfigDisableSeconds * 1000)) && (config.active())) {
     Serial.printf("Disabling Bluetooth configuration\n");
     config.end();
   }
