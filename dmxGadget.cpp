@@ -16,12 +16,16 @@ void dmxGadget::setup()
   Serial.println("Starting up!");
 
   // Enable WDT
+#if ESP_ARDUINO_VERSION_MAJOR == 3
   esp_task_wdt_config_t twdt_config = {
       .timeout_ms = WDT_TIMEOUT * 1000,
       .idle_core_mask = 0x03,    // Bitmask of all cores
       .trigger_panic = true,
   };
   esp_task_wdt_init(&twdt_config);
+#else
+  esp_task_wdt_init(WDT_TIMEOUT, true);
+#endif
 
   // Bring up the status LED
   pinMode(STATUS_LED_PIN, OUTPUT);
