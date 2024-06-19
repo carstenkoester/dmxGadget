@@ -22,7 +22,7 @@ void dmxGadget::setup()
       .idle_core_mask = 0x03,    // Bitmask of all cores
       .trigger_panic = true,
   };
-  esp_task_wdt_init(&twdt_config);
+  esp_task_wdt_reconfigure(&twdt_config);
 #else
   esp_task_wdt_init(WDT_TIMEOUT, true);
 #endif
