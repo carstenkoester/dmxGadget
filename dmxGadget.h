@@ -23,7 +23,7 @@
 class dmxGadget
 {
   public:
-    dmxGadget(char* name, unsigned int led_count, unsigned int defaultDmxAddress=1);
+    dmxGadget(char* name, unsigned int led_count, wdmxID_t defaultWdmxID=AUTO, unsigned int defaultDmxAddress=1);
     void setup();
     void loop();
 
@@ -33,6 +33,7 @@ class dmxGadget
     Battery18650Stats battery;
 
     BLEUIntConfigItem dmxAddress;
+    BLEUIntConfigItem wdmxID;
 
     unsigned int bleConfigDisableSeconds = 300; // 5 Minutes
     unsigned int statusSeconds = 5;
@@ -42,6 +43,8 @@ class dmxGadget
     unsigned long previousMillis = 0;
     unsigned long previousOutputLoopCount = 0;
     unsigned long previousRxCount = 0;
-    unsigned long previousErrors = 0;
+    unsigned long previousInvalid = 0;
+    unsigned long previousOverruns = 0;
+    unsigned long previousSeqErrors = 0;
 };
 #endif
