@@ -76,9 +76,10 @@ void dmxGadget::loop() {
 
       unsigned int deltaMillis = currentMillis-previousMillis;
 
-      Serial.printf("WDMX ID %d (cfg %d), Addr %d, Uptime: %d, RxCount: %d (+%d, %.2f/sec), invalid %d (+%d, %.2f/sec, %.2f%%), overruns %d (+%d, %.2f/sec, %.2f%%), seq err %d (+%d, %.2f/sec, %.2f%%), loop iterations %d (+%d, %.2f/sec), Bat Voltage: %.2fV (%d%%), BLE active %d\n",
+      Serial.printf("WDMX ID %d (cfg %d), chan %d, Addr %d, Uptime: %d, RxCount: %d (+%d, %.2f/sec), invalid %d (+%d, %.2f/sec, %.2f%%), overruns %d (+%d, %.2f/sec, %.2f%%), seq err %d (+%d, %.2f/sec, %.2f%%), loop %d (+%d, %.2f/sec), bat %.2fV (%d%%), BLE act %d\n",
         receiver.getId(),
         (wdmxID_t)wdmxID.value(),
+        receiver.getChannel(),
         dmxAddress.value(),
         currentMillis/1000,
         rxCount, rxCount-previousRxCount, ((float)(rxCount-previousRxCount)/deltaMillis*1000),
