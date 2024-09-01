@@ -52,8 +52,7 @@ void dmxGadget::setup()
 
   // Start the receiver
   receiver.debug = true;
-  receiver.begin((wdmxID_t)wdmxID.value());
-  // FIXME: Need some kind of feedback loop here. This seems to be stuck forever and non responsive on BLE.
+  receiver.begin((wdmxID_t)wdmxID.value(), config.pollAndHandleConnected);
 }
 
 void dmxGadget::loop() {
