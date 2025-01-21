@@ -5,8 +5,8 @@ dmxGadget::dmxGadget(char* name, unsigned int led_count, wdmxID_t defaultWdmxID,
   config(name),
   strip(led_count, NEOPIXEL_LED_PIN, NEOPIXEL_LED_CONFIG),
   battery(BAT_VOLT_PIN),
-  dmxAddress("dmx_address", defaultDmxAddress),
-  wdmxID("wdmx_id", defaultWdmxID)
+  dmxAddress("DMX Address", defaultDmxAddress),
+  wdmxID("Radio ID", defaultWdmxID)
 {
 };
 
