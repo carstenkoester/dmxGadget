@@ -46,13 +46,13 @@ void dmxGadget::setup()
     Serial.println("NeoPixel strip is zero length, not initializing");
   }
 
-  // Power PropMaker wing NeoPixel circuit
-  pinMode(NEOPIXEL_LED_POWER, OUTPUT);
-  digitalWrite(NEOPIXEL_LED_POWER, HIGH);
-
   // Start the receiver
   receiver.debug = true;
   receiver.begin((wdmxID_t)wdmxID.value(), config.pollAndHandleConnected);
+
+  // Power PropMaker wing NeoPixel circuit
+  pinMode(NEOPIXEL_LED_POWER, OUTPUT);
+  digitalWrite(NEOPIXEL_LED_POWER, HIGH);
 }
 
 void dmxGadget::loop() {
