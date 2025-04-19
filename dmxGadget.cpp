@@ -1,18 +1,18 @@
 #include <dmxGadget.h>
 
 BLEConfig dmxGadget::config;
-unsigned int dmxGadget::_statusLEDPin;
-unsigned char dmxGadget::_statusLEDLevel = 0;
-unsigned int dmxGadget::_statusLEDMillis = 0;
-unsigned int dmxGadget::_scanMillis = 0;
+StatusLED dmxGadget::_statusLED;
+
+unsigned long DmxNowDmxGadget::_last_receive_millis = 0;
+
 
 dmxGadget::dmxGadget(char* name, unsigned int led_count, unsigned int defaultDmxAddress, unsigned int statusLEDPin):
   strip(led_count, NEOPIXEL_LED_PIN, NEOPIXEL_LED_CONFIG),
   battery(BAT_VOLT_PIN),
   dmxAddress("DMX Address", defaultDmxAddress)
 {
-  config.setAppName(name, true);
   _statusLEDPin = statusLEDPin;
+  config.setAppName(name, true);
 };
 
 void dmxGadget::setup()
@@ -33,9 +33,7 @@ void dmxGadget::setup()
   esp_task_wdt_init(WDT_TIMEOUT, true);
 #endif
 
-  // Bring up the status LED
-  pinMode(_statusLEDPin, OUTPUT);
-  digitalWrite(_statusLEDPin, HIGH);
+  _statusLED.setup(_statusLEDPin);
 
   // Start config
   config.begin();
@@ -73,35 +71,30 @@ void dmxGadget::loop() {
   }
 }
 
-void dmxGadget::onReceive() {
-  if (_statusLEDPin != 0) {
-    // Pulse status LED when we're receiving
-    unsigned long currentMillis = millis();
+void dmxGadget::fatalError(unsigned int error_code) {
+  #if ESP_ARDUINO_VERSION_MAJOR == 3
+  esp_task_wdt_config_t twdt_config = {
+      .timeout_ms = WDT_TIMEOUT * 1000,
+      .idle_core_mask = 0x03,    // Bitmask of all cores
+      .trigger_panic = false,
+  };
+  esp_task_wdt_reconfigure(&twdt_config);
+#else
+  esp_task_wdt_deinit();
+#endif
 
-    if (currentMillis > _statusLEDMillis + 2000) {
-      if (_statusLEDLevel == 0) {
-        _statusLEDLevel = 255;
-      } else {
-        _statusLEDLevel = 0;
-      }
-      digitalWrite(_statusLEDPin, _statusLEDLevel);
-      _statusLEDMillis = currentMillis;
-    }
-  }
+  Serial.printf("FATAL ERROR: %d\n", error_code);
+  _statusLED.error_blink(error_code);
+  Serial.printf("Restarting...\n");
+  ESP.restart();
+}
+
+void dmxGadget::onReceive() {
 }
 
 void dmxGadget::onScan()
 {
-  if (_statusLEDPin != 0) {
-    // Pulse status LED when we're receiving
-    unsigned long currentMillis = millis();
-
-    if (currentMillis > _scanMillis + 500) {
-      digitalWrite(_statusLEDPin, !digitalRead(_statusLEDPin));
-    }
-    _scanMillis = currentMillis;
-  }
-
+  _statusLED.blink(200);
   config.pollAndHandleConnected();
 }
 
@@ -126,6 +119,13 @@ void rf24DmxGadget::loop()
 {
   dmxGadget::loop();
   unsigned long currentMillis = millis();
+
+  // If we have received data in the last 1.5 seconds, blink happily. Otherwise, blink fast.
+  if (currentMillis < receiver.lastRxMillis()+1500) {
+    _statusLED.breathe(1500);
+  } else {
+    _statusLED.blink(80);
+  }
 
   if (statusSeconds > 0) {
     if (currentMillis > (previousMillis + (statusSeconds * 1000))) {
@@ -169,6 +169,12 @@ DmxNowDmxGadget::DmxNowDmxGadget(char* name, unsigned int led_count, uint8_t def
 {
 };
 
+void DmxNowDmxGadget::onReceive()
+{
+  dmxGadget::onReceive();
+  _last_receive_millis = millis();
+}
+
 void DmxNowDmxGadget::setup()
 {
   dmxGadget::setup();
@@ -177,12 +183,26 @@ void DmxNowDmxGadget::setup()
   // Start the receiver
   receiver.debug = true;
   receiver.begin(channel.value(), onReceive);
+
+  Serial.printf("Waiting for receiver to lock on a transmitter\n");
+  while (!receiver.isLocked()) {
+    _statusLED.blink(200);
+    delay(25);
+  }
+  Serial.printf("Found transmitter\n");
 };
 
 void DmxNowDmxGadget::loop()
 {
   dmxGadget::loop();
   unsigned long currentMillis = millis();
+
+  // If we have received data in the last 1.5 seconds, blink happily. Otherwise, blink fast.
+  if (currentMillis < _last_receive_millis+1500) {
+    _statusLED.breathe(1500);
+  } else {
+    _statusLED.blink(80);
+  }
 
   if (statusSeconds > 0) {
     if (currentMillis > (previousMillis + (statusSeconds * 1000))) {
@@ -192,13 +212,16 @@ void DmxNowDmxGadget::loop()
       unsigned int seqErrors = receiver.rxSeqErrors();
 
       unsigned int deltaMillis = currentMillis-previousMillis;
+      const uint8_t* xmtr_mac = receiver.getXmtr();
 
-      Serial.printf("DMXNow Addr %d, Uptime: %d, RxCount: %d (+%d, %.2f/sec), invalid %d (+%d, %.2f/sec, %.2f%%), overruns %d (+%d, %.2f/sec, %.2f%%), seq err %d (+%d, %.2f/sec, %.2f%%), loop %d (+%d, %.2f/sec), bat %.2fV (%d%%), BLE act %d\n",
+      Serial.printf("DMXNow Channel %d, Addr %d, Lock %d, Xmtr %02x:%02x:%02x:%02x:%02x:%02x, Uptime: %d, RxCount: %d (+%d, %.2f/sec), invalid %d (+%d, %.2f/sec, %.2f%%), seq err %d (+%d, %.2f/sec, %.2f%%), loop %d (+%d, %.2f/sec), bat %.2fV (%d%%), BLE act %d\n",
+        channel.value(),
         dmxAddress.value(),
+        receiver.isLocked(),
+        xmtr_mac[0], xmtr_mac[1], xmtr_mac[2], xmtr_mac[3], xmtr_mac[4], xmtr_mac[5],  
         currentMillis/1000,
         rxCount, rxCount-previousRxCount, ((float)(rxCount-previousRxCount)/deltaMillis*1000),
         rxInvalid, rxInvalid-previousInvalid, ((float)(rxInvalid-previousInvalid)/deltaMillis*1000), ((((float)(rxInvalid-previousInvalid)/(rxCount-previousRxCount))*100)),
-        overruns, overruns-previousOverruns, ((float)(overruns-previousOverruns)/deltaMillis*1000), ((((float)(overruns-previousOverruns)/(rxCount-previousRxCount))*100)),
         seqErrors, seqErrors-previousSeqErrors, ((float)(seqErrors-previousSeqErrors)/deltaMillis*1000), ((((float)(seqErrors-previousSeqErrors)/(rxCount-previousRxCount))*100)),
         outputLoopCount, outputLoopCount-previousOutputLoopCount, ((float)(outputLoopCount-previousOutputLoopCount)/deltaMillis*1000),
         battery.getBatteryVolts(), battery.getBatteryChargeLevel(),

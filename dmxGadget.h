@@ -9,6 +9,8 @@
 #include <BLEConfig.h>
 #include <Battery18650Stats.h>
 
+#include "StatusLED.h"
+
 #define WDT_TIMEOUT                             20   // 20 seconds watchdog timeout
 
 #define RF24_PIN_CE                             25   // GPIO connected to nRF24L01 CE pin (module pin 3)
@@ -21,6 +23,7 @@
 #define BAT_VOLT_PIN                           A13   // Battery voltage measure pin
 #define STATUS_LED_PIN                          13   // Status indicator LED pin
 
+
 class dmxGadget
 {
   public:
@@ -28,28 +31,27 @@ class dmxGadget
     void setup();
     void loop();
 
+    void fatalError(unsigned int error_code);
+
     static BLEConfig config;
     Adafruit_NeoPixel strip;
     Battery18650Stats battery;
 
     BLEUIntConfigItem dmxAddress;
 
-    unsigned int bleConfigDisableSeconds = 300; // 5 Minutes
+    unsigned int bleConfigDisableSeconds = 30; // FIXME 5 Minutes
     unsigned int statusSeconds = 5;
 
   protected:
-    static void onReceive();                         // Callback to be called during DMX packet receive
-    static void onScan();                            // Callback to be called during network search or channel scan
+    static void onReceive();                                      // Callback to be called during DMX packet receive
+    static void onScan();                                         // Callback to be called during network search or channel scan
+
+    static StatusLED _statusLED;
+    unsigned int _statusLEDPin = 0;
 
     unsigned long outputLoopCount = 0;
     unsigned long previousMillis = 0;
     unsigned long previousOutputLoopCount = 0;
-
-    static unsigned int _statusLEDPin;
-    static unsigned char _statusLEDLevel;
-    static unsigned int _statusLEDMillis;
-
-    static unsigned int _scanMillis;
 };
 
 class rf24DmxGadget : public dmxGadget {
@@ -76,6 +78,8 @@ class DmxNowDmxGadget : public dmxGadget {
     void setup();
     void loop();
 
+    static void onReceive();
+
     DMXNow_Receiver receiver;
     BLEUIntConfigItem channel;
 
@@ -84,5 +88,7 @@ class DmxNowDmxGadget : public dmxGadget {
     unsigned long previousInvalid = 0;
     unsigned long previousOverruns = 0;
     unsigned long previousSeqErrors = 0;
+
+    static unsigned long _last_receive_millis;
 };
 #endif
