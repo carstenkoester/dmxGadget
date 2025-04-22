@@ -12,7 +12,8 @@ dmxGadget::dmxGadget(char* name, unsigned int led_count, unsigned int defaultDmx
   dmxAddress("DMX Address", defaultDmxAddress)
 {
   _statusLEDPin = statusLEDPin;
-  config.setAppName(name, true);
+  _ledCount = led_count;
+  _appName = name;
 };
 
 void dmxGadget::setup()
@@ -36,12 +37,12 @@ void dmxGadget::setup()
   _statusLED.setup(_statusLEDPin);
 
   // Start config
-  config.begin();
+  config.begin(_appName.c_str());
   config.addItem(dmxAddress);
   config.advertise();
 
   // Start the strip
-  if (strip.numPixels() > 0) {
+  if (_ledCount > 0) {
     strip.begin();
     strip.show();
   } else {
@@ -54,18 +55,12 @@ void dmxGadget::setup()
 }
 
 void dmxGadget::loop() {
-  outputLoopCount++;
-
   config.loop();
-  if (config.connected()) {  
-    Serial.printf("Configuration is connected\n");
-    config.handleConnected();
-    Serial.printf("Configuration is disconnected\n");
-  }
 
+  outputLoopCount++;
   unsigned long currentMillis = millis();
 
-  if ((currentMillis > (bleConfigDisableSeconds * 1000)) && (config.active())) {
+  if ((currentMillis > (bleConfigDisableSeconds * 1000)) && (config.active() && !(config.connected()))) {
     Serial.printf("Disabling Bluetooth configuration\n");
     config.end();
   }
@@ -95,7 +90,6 @@ void dmxGadget::onReceive() {
 void dmxGadget::onScan()
 {
   _statusLED.blink(200);
-  config.pollAndHandleConnected();
 }
 
 rf24DmxGadget::rf24DmxGadget(char* name, unsigned int led_count, wdmxID_t defaultWdmxID, unsigned int defaultDmxAddress, unsigned int statusLEDPin):
@@ -159,8 +153,6 @@ void rf24DmxGadget::loop()
     }
   }
 }
-
-
 
 DmxNowDmxGadget::DmxNowDmxGadget(char* name, unsigned int led_count, uint8_t defaultChannel, unsigned int defaultDmxAddress, unsigned int statusLEDPin):
   dmxGadget(name, led_count, defaultDmxAddress, statusLEDPin),

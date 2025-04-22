@@ -1,6 +1,8 @@
 #ifndef dmxGadget_h
 #define dmxGadget_h
 
+#include <string>
+
 #include <esp_task_wdt.h>
 
 #include <Adafruit_NeoPixel.h>
@@ -39,12 +41,14 @@ class dmxGadget
 
     BLEUIntConfigItem dmxAddress;
 
-    unsigned int bleConfigDisableSeconds = 30; // FIXME 5 Minutes
+    unsigned int bleConfigDisableSeconds = 30; // Disable BT after 30 seconds
     unsigned int statusSeconds = 5;
 
   protected:
     static void onReceive();                                      // Callback to be called during DMX packet receive
     static void onScan();                                         // Callback to be called during network search or channel scan
+
+    unsigned int _ledCount;
 
     static StatusLED _statusLED;
     unsigned int _statusLEDPin = 0;
@@ -52,6 +56,8 @@ class dmxGadget
     unsigned long outputLoopCount = 0;
     unsigned long previousMillis = 0;
     unsigned long previousOutputLoopCount = 0;
+
+    std::string _appName;
 };
 
 class rf24DmxGadget : public dmxGadget {
