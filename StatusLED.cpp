@@ -2,13 +2,13 @@
 #include "StatusLED.h"
 
 #define RETURN_IF_NO_STATUS_LED \
-  if (!_pin) { return; }
+  if (_pin == -1) { return; }
 
 StatusLED::StatusLED()
 {
 }
 
-void StatusLED::setup(const unsigned int pin)
+void StatusLED::setup(const int16_t pin)
 {
   _pin = pin;
 

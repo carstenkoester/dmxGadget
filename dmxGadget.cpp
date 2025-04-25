@@ -30,27 +30,34 @@ dmxGadget::dmxGadget(char* name, dmxgadget_board_t board, unsigned int led_count
   }
 };
 
+void dmxGadget::_reconfigureWDT(unsigned int timeout, bool panic) {
+  #if ESP_ARDUINO_VERSION_MAJOR == 3
+  esp_task_wdt_config_t twdt_config = {
+      .timeout_ms = timeout * 1000,
+      .idle_core_mask = 0x03,    // Bitmask of all cores
+      .trigger_panic = panic,
+  };
+  esp_task_wdt_reconfigure(&twdt_config);
+#else
+  if (panic) {
+    esp_task_wdt_init(timeout, true);
+  } else {
+    esp_task_wdt_deinit();
+  }
+#endif  
+}
+
 void dmxGadget::setup(std::vector<BLEConfigItem*> additionalBLEConfigItems)
 {
   Serial.begin(115200);
   delay(500);
   Serial.printf("Starting up!\n");
 
-  // Enable WDT
-#if ESP_ARDUINO_VERSION_MAJOR == 3
-  esp_task_wdt_config_t twdt_config = {
-      .timeout_ms = WDT_TIMEOUT * 1000,
-      .idle_core_mask = 0x03,    // Bitmask of all cores
-      .trigger_panic = true,
-  };
-  esp_task_wdt_reconfigure(&twdt_config);
-#else
-  esp_task_wdt_init(WDT_TIMEOUT, true);
-#endif
-
+  // Enable WDT and startus LED
+  _reconfigureWDT(DEFAULT_SCAN_WDT_TIMEOUT);
   _statusLED.setup(_board.pins.status_led);
 
-  // Start config
+  // Start BLE Configuration
   config.begin(_appName.c_str());
   config.addItem(dmxAddress);
 
@@ -90,16 +97,7 @@ void dmxGadget::loop() {
 }
 
 void dmxGadget::fatalError(unsigned int error_code) {
-  #if ESP_ARDUINO_VERSION_MAJOR == 3
-  esp_task_wdt_config_t twdt_config = {
-      .timeout_ms = WDT_TIMEOUT * 1000,
-      .idle_core_mask = 0x03,    // Bitmask of all cores
-      .trigger_panic = false,
-  };
-  esp_task_wdt_reconfigure(&twdt_config);
-#else
-  esp_task_wdt_deinit();
-#endif
+  _reconfigureWDT(1, false);
 
   Serial.printf("FATAL ERROR: %d\n", error_code);
   _statusLED.error_blink(error_code);
@@ -130,6 +128,8 @@ void rf24DmxGadget::setup(std::vector<BLEConfigItem*> userConfigItems)
   // Start the receiver
   receiver.debug = true;
   receiver.begin((wdmxID_t)wdmxID.value(), this->onScan);
+
+  _reconfigureWDT(DEFAULT_RECEIVE_LOOP_WDT_TIMEOUT);
 };
 
 void rf24DmxGadget::loop()
@@ -212,6 +212,8 @@ void DmxNowDmxGadget::setup(std::vector<BLEConfigItem*> userConfigItems)
     delay(25);
   }
   Serial.printf("Found transmitter\n");
+
+  _reconfigureWDT(DEFAULT_RECEIVE_LOOP_WDT_TIMEOUT);
 };
 
 void DmxNowDmxGadget::loop()
@@ -312,6 +314,8 @@ void sACNDmxGadget::setup(std::vector<BLEConfigItem*> userConfigItems)
   recv.begin(universe.value());
 
   Serial.printf("Listening for data on DMX universe %d\n", universe.value());
+
+  _reconfigureWDT(DEFAULT_RECEIVE_LOOP_WDT_TIMEOUT);
 
   // Start the output task
   xTaskCreatePinnedToCore(

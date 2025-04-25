@@ -5,7 +5,7 @@ class StatusLED
 {
   public:
     StatusLED();
-    void setup(const unsigned int pin);
+    void setup(const int16_t pin);
     void on();
     void off();
     void blink(const unsigned int cycle_time);
@@ -19,7 +19,7 @@ class StatusLED
     unsigned int error_blink_repeat_count = 2;
 
   protected:
-    unsigned int _pin;
+    int16_t _pin;
     unsigned char _level = 0;
     enum breathe_direction_t {
       DIRECTION_UP,

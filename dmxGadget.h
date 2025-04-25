@@ -18,7 +18,9 @@
 
 #include "dmxGadget-boards.h"
 
-#define WDT_TIMEOUT                             20   // 20 seconds watchdog timeout
+
+#define DEFAULT_SCAN_WDT_TIMEOUT               120   // 2 Minute watchdog timeout during scan phase
+#define DEFAULT_RECEIVE_LOOP_WDT_TIMEOUT        20   // 30-second watchdog timeout after we've locked on a receiver
 
 #define DEFAULT_BLE_CONFIG_DISABLE_SECONDS      60   // Disable BLE configuration after one minute uptime
 #define DEFAULT_STATUS_SECONDS                   5   // Print status update every n seconds. Set to zero to disable.
@@ -40,6 +42,7 @@
 #define RF24_PIN_CSN                             4   // GPIO connected to nRF24L01 CSN pin (module pin 4)
 
 #define NEOPIXEL_LED_CONFIG   NEO_RGB + NEO_KHZ800   // NEO_GRB / NEO_RGB / NEO_RGBW
+
 
 class dmxGadget
 {
@@ -66,6 +69,7 @@ class dmxGadget
 
   protected:
     static void onScan();                                         // Callback to be called during network search or channel scan
+    void _reconfigureWDT(unsigned int timeout, bool panic = true);  
 
     unsigned int _ledCount;
 
