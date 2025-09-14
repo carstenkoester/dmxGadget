@@ -10,6 +10,13 @@ dmxgadget_board_t DMXGADGET_BOARD_HUZZAH32_PROPMAKER_RF24 = {
   }
 };
 
+dmxgadget_board_t DMXGADGET_BOARD_HUZZAH32_RF24 = {
+  .display_name = "Adafruit Huzzah32 with RF24",
+  .pins = {
+    .battery_voltage = 35,   // A13
+  }
+};
+
 dmxgadget_board_t DMXGADGET_BOARD_XIAO_ESP32S3 = {
   .display_name = "XIAO ESP32-S3",
   .pins = {

@@ -1,6 +1,27 @@
 #ifndef dmxGadget_h
 #define dmxGadget_h
 
+/*
+Using board 'featheresp32' from platform in folder: C:\Users\carst\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.2.0
+Using core 'esp32' from platform in folder: C:\Users\carst\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.2.0
+
+Using library dmxGadget in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\dmxGadget (legacy)
+Using library Adafruit NeoPixel at version 1.12.5 in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\Adafruit_NeoPixel 
+Using library BLEConfig in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\BLEConfig (legacy)
+Using library Preferences at version 3.2.0 in folder: C:\Users\carst\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.2.0\libraries\Preferences 
+Using library BLE at version 3.2.0 in folder: C:\Users\carst\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.2.0\libraries\BLE 
+Using library Battery_18650_Stats at version 1.0.0 in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\Battery_18650_Stats 
+Using library WirelessDMXReceiver in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\WirelessDMXReceiver (legacy)
+Using library RF24 at version 1.4.11 in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\RF24 
+Using library SPI at version 3.2.0 in folder: C:\Users\carst\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.2.0\libraries\SPI 
+Using library RingBuffer at version 1.0.5 in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\RingBuffer 
+Using library DMXNow in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\DMXNow (legacy)
+Using library ESP_NOW at version 3.2.0 in folder: C:\Users\carst\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.2.0\libraries\ESP_NOW 
+Using library sACN at version 1.1.0 in folder: C:\Users\carst\OneDrive\Documents\Arduino\libraries\sACN 
+Using library WiFi at version 3.2.0 in folder: C:\Users\carst\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.2.0\libraries\WiFi 
+Using library Networking at version 3.2.0 in folder: C:\Users\carst\AppData\Local\Arduino15\packages\esp32\hardware\esp32\3.2.0\libraries\Network 
+*/
+
 #include <string>
 #include <esp_task_wdt.h>
 

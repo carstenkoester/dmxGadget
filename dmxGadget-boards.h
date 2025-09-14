@@ -17,6 +17,7 @@ typedef struct {
 } dmxgadget_board_t;
 
 extern dmxgadget_board_t DMXGADGET_BOARD_HUZZAH32_PROPMAKER_RF24;
+extern dmxgadget_board_t DMXGADGET_BOARD_HUZZAH32_RF24;
 extern dmxgadget_board_t DMXGADGET_BOARD_XIAO_ESP32S3;
 extern dmxgadget_board_t DMXGADGET_BOARD_XIAO_ESP32S3_NO_STATUS_LED;
 
