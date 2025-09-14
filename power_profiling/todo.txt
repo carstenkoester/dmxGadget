@@ -1,0 +1,17 @@
+- RF24 scanning
+- RF24 receiving
+- DMXNow scanning, with RF24 shield
+- DMXNow receiving, low traffic (1-2/sec), with RF24 shield
+- DMXNow scanning, without RF24 shield
+- DMXNow receiving, low traffic (1-2/sec), without RF24 shield
+- DMXNow receiving, high traffic (40/sec), without RF24 shield
+- sACN scanning, without RF24 shield
+- sACN receiving, low traffic (1-2/sec), without RF24 shield
+- sACN receiving, high traffic (40/sec), without RF24 shield
+
+Notes:
+- RF24 shield presence makes no significant difference if shield not used
+- sACN/DMXNow low traffic vs high traffic makes no significant difference
+
+- Visually, sACN looks very rough and feels sluggish. Output delayed up to 1-2 seconds.
+
