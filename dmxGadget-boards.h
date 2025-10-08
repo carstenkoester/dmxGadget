@@ -6,8 +6,10 @@
 typedef struct {
   int16_t battery_voltage {-1};
   int16_t status_led {-1};
+  int16_t neopixel_status_led {-1};
   int16_t neopixel_power {-1};
   int16_t neopixel_data {-1};
+  int16_t button {-1};
 } dmxgadget_board_pin_t;
 
 typedef struct {
@@ -18,7 +20,11 @@ typedef struct {
 
 extern dmxgadget_board_t DMXGADGET_BOARD_HUZZAH32_PROPMAKER_RF24;
 extern dmxgadget_board_t DMXGADGET_BOARD_HUZZAH32_RF24;
+extern dmxgadget_board_t DMXGADGET_BOARD_HUZZAH32;
+extern dmxgadget_board_t DMXGADGET_BOARD_HUZZAH32_NO_STATUS;
 extern dmxgadget_board_t DMXGADGET_BOARD_XIAO_ESP32S3;
 extern dmxgadget_board_t DMXGADGET_BOARD_XIAO_ESP32S3_NO_STATUS_LED;
+extern dmxgadget_board_t DMXGADGET_BOARD_SPARKLE_MOTION_MINI;
+extern dmxgadget_board_t DMXGADGET_BOARD_SPARKLE_MOTION;
 
 #endif

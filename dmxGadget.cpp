@@ -1,5 +1,8 @@
 #include <dmxGadget.h>
 
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : \
+                      (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__))
+
 BLEConfig dmxGadget::config;
 StatusLED dmxGadget::_statusLED;
 
@@ -25,7 +28,7 @@ dmxGadget::dmxGadget(char* name, dmxgadget_board_t board, unsigned int led_count
     battery = new Battery18650Stats(_board.pins.battery_voltage);
   }
 
-  if (_board.pins.neopixel_data >= 0) {
+  if ((_board.pins.neopixel_data >= 0) && (led_count > 0)) {
     strip.setPin(_board.pins.neopixel_data);
   }
 };
@@ -68,6 +71,7 @@ void dmxGadget::setup(std::vector<BLEConfigItem*> additionalBLEConfigItems)
 
   // Start the strip
   if ((_ledCount > 0) && (_board.pins.neopixel_data >= 0)) {
+    Serial.printf("Initializing NeoPixel strip on pin %d for %d LEDs\n", _board.pins.neopixel_data, _ledCount);
     strip.begin();
     strip.show();
   } else {
@@ -82,6 +86,12 @@ void dmxGadget::setup(std::vector<BLEConfigItem*> additionalBLEConfigItems)
 
   Serial.printf("Board type: %s\n", _board.display_name);
   Serial.printf("BLE name:   %s\n", config.getName().c_str());
+  Serial.printf("Compiled from Sketch file %s on %s %s\n", __FILENAME__, __DATE__, __TIME__);
+  #if defined(ARDUINO_BOARD_NAME)
+    Serial.printf("Arduino IDE board name: %s\n", ARDUINO_BOARD_NAME);
+  #else
+    Serial.println("Arduino IDE board name not known");
+  #endif
 }
 
 void dmxGadget::loop() {

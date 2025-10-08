@@ -74,6 +74,7 @@ class dmxGadget
 
     virtual uint8_t getValue(unsigned int address) const = 0;
     virtual void getValues(unsigned int startAddress, unsigned int length, void* buffer) const = 0;
+    virtual unsigned long last_receive_millis() const = 0;
 
     void fatalError(unsigned int error_code);
 
@@ -115,6 +116,8 @@ class rf24DmxGadget : public dmxGadget {
 
     uint8_t getValue(unsigned int address) const { return receiver.getValue(address); };
     void getValues(unsigned int startAddress, unsigned int length, void* buffer) const { receiver.getValues(startAddress, length, buffer); };
+    unsigned long last_receive_millis() const { return receiver.lastRxMillis(); };
+
 
     WirelessDMXReceiver receiver;
     BLEUIntConfigItem wdmxID;
@@ -135,6 +138,7 @@ class DmxNowDmxGadget : public dmxGadget {
 
     uint8_t getValue(unsigned int address) const { return receiver.getValue(address); };
     void getValues(unsigned int startAddress, unsigned int length, void* buffer) const { receiver.getValues(startAddress, length, buffer); };
+    unsigned long last_receive_millis() const { return _last_receive_millis; };
 
     static void onReceive();
 
@@ -161,6 +165,7 @@ class sACNDmxGadget : public dmxGadget {
 
     uint8_t getValue(unsigned int address) const { return (_dmxBuffer[address - 1]); };
     void getValues(unsigned int startAddress, unsigned int length, void* buffer) const { memcpy(buffer, (void *)(_dmxBuffer + startAddress - 1), length); };
+    unsigned long last_receive_millis() const { return _last_receive_millis; };
 
     const bool isLocked() const { return((recv.name()[0] != '\0') && (rxCount > 3)); }; // Wait for at least three valid packets before declaring victory
 
